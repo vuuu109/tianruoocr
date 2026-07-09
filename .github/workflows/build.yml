@@ -1,197 +1,29 @@
-# 工作流的名称
-name: 构建并发行
-# name: .NET Framework Multi-Platform Build & Release
+name: Build TrOCR
 
-# 触发工作流的事件
 on:
-  # push:
-    # # branches: [ "main","feature/more" ]
-    # branches: [ "main" ]
-    # tags: [ 'v*' ] # <--- 新增：当推送 v* 标签时也触发，匹配v开头的标签
-    # tags: [ '*' ] #匹配所有标签
-  # pull_request:
-  #   branches: [ "main" ]
-  # watch:
-  #   types: [started]
-  #手动触发按钮
+  push:
+    branches: [ pix2text, main ]
   workflow_dispatch:
-    # <--- 新增：为手动运行添加输入框，以支持手动运行 action 创建发行版(草稿) ---
-    inputs:
-      tag_name:
-        description: '要发布的标签名 (例如: 1.2.0)(可选)'
-        # <--- 修改：设为可选 ---
-        required: false
-        default: ''
 
 jobs:
-  # --- 第一个任务：编译 x86 版本 ---
-  build-x86:
-    name: Build (x86)
+  build:
     runs-on: windows-latest
-    # <--- 关键修改：添加这一行 ---
-    continue-on-error: true
-    
-    # 为整个 Job 添加 if 条件
-    # 只有当事件不是 'watch'，或者当事件是 'watch' 且触发者是仓库所有者时，才运行此任务
-    if: github.event_name != 'watch' || (github.event_name == 'watch' && github.actor == github.repository_owner)
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        # <--- 关键修改 ---
-        # 智能签出 (优先级从高到低):
-        # 1. 如果是手动运行且在 [文本框] 中输入了 tag_name, 优先使用它。
-        # 2. 否则 (包括[推送标签]触发, 或手动运行[下拉菜单]选择), 使用 github.ref。
-        ref: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.tag_name) || github.ref }}
-        fetch-depth: 0  # 0 表示拉取所有历史和标签
+      - uses: actions/checkout@v4
 
-    - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v2
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
 
-    - name: Setup NuGet
-      uses: NuGet/setup-nuget@v2
+      - name: Restore NuGet packages
+        run: nuget restore TrOCR.sln
 
-    - name: Restore NuGet packages
-      run: nuget restore TrOCR.sln
+      - name: Build
+        run: msbuild TrOCR.sln /p:Configuration=Release /p:Platform=x64
 
-    - name: Build with MSBuild (x86)
-      run: msbuild.exe TrOCR.sln /p:Configuration=Release /p:Platform=x86
-      
-    - name: Upload x86 Build Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: TrOCR-Release-x86
-        path: bin/x86/Release
-
-  # --- 第二个任务：编译 x64 版本 ---
-  build-x64:
-    name: Build (x64)
-    runs-on: windows-latest
-    # <--- 关键修改：添加这一行 ---
-    continue-on-error: true
-
-    # 为整个 Job 添加同样的 if 条件
-    if: github.event_name != 'watch' || (github.event_name == 'watch' && github.actor == github.repository_owner)
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        # <--- 关键修改 (同上) ---
-        ref: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.tag_name) || github.ref }}
-        fetch-depth: 0   # 0 表示拉取所有历史和标签
-
-    - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v2
-
-    - name: Setup NuGet
-      uses: NuGet/setup-nuget@v2
-
-    - name: Restore NuGet packages
-      run: nuget restore TrOCR.sln
-
-    - name: Build with MSBuild (x64)
-      run: msbuild.exe TrOCR.sln /p:Configuration=Release /p:Platform=x64
-      
-    - name: Upload x64 Build Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: TrOCR-Release-x64
-        path: bin/x64/Release
-
-  # --- 第三个任务：创建 Release发行版 ---
-  create-release:
-    name: Create Release
-    # <--- 关键修改 (满足任一条件即可运行)：
-    # 1. 引用(ref)是一个标签 (包括[推送标签]或[手动下拉菜单选择标签])
-    # 2. 手动运行且在[文本框]中输入了 tag_name
-    if: |
-      (startsWith(github.ref, 'refs/tags/')) ||
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.tag_name != '')
-    
-    # (关键) 等待 x86 和 x64 都编译成功
-    needs: [build-x86, build-x64]
-    
-    # 使用 ubuntu-latest 更快，且已预装 zip/7z
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    
-    # (关键) 需要权限来创建 Release
-    permissions:
-      contents: write #'write' 权限 (用于 gh api 和 ncipollo)
-
-    # <--- 新增：设置一个环境变量来存储标签名 ---
-    env:
-      # 智能设置标签名 (优先级从高到低):
-      # 1. 如果手动运行且在 [文本框] 中输入了 tag_name, 优先使用它。
-      # 2. 否则 (包括[推送标签]触发, 或手动运行[下拉菜单]选择), 使用 github.ref_name。
-      RELEASE_TAG: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.tag_name) || github.ref_name }}
-      # <--- 关键优化：优先使用 MY_PAT，否则回退到 GITHUB_TOKEN ---
-      GH_TOKEN: ${{ secrets.MY_PAT || secrets.GITHUB_TOKEN }} # (gh api 需要这个)
-
-    steps:
-      - name: Download x86 Artifact
-        uses: actions/download-artifact@v4
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: TrOCR-Release-x86
-          path: ./TrOCR-Release-x86 # 下载到指定文件夹
-
-      - name: Download x64 Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: TrOCR-Release-x64
-          path: ./TrOCR-Release-x64
-
-      - name: List downloaded files (for debugging)
-        run: ls -R
-
-      - name: Package artifacts into .zip files
-        # 使用 7z (预装在 ubuntu-latest) 来创建 zip 包
-        run: |
-          # <--- 修改：使用新的环境变量来命名 .zip ---
-          7z a -tzip TrOCR_${{ env.RELEASE_TAG }}_x86.zip ./TrOCR-Release-x86/*
-          7z a -tzip TrOCR_${{ env.RELEASE_TAG }}_x64.zip ./TrOCR-Release-x64/*
-
-      #     # <--- 关键的新增步骤，方案一 ---
-      # - name: Create and Push Git Tag (if manual)
-      #   # 只有当 "手动运行" 时才执行此步骤
-      #   if: github.event_name == 'workflow_dispatch'
-      #   run: |
-      #     # (注意) 这会给当前的 'main' 分支的最新 commit 打上标签
-      #     echo "Creating tag ${{ env.RELEASE_TAG }} and pushing to remote..."
-      #     git config user.name "github-actions[bot]"
-      #     git config user.email "github-actions[bot]@users.noreply.github.com"
-      #     git tag ${{ env.RELEASE_TAG }} -m "Release ${{ env.RELEASE_TAG }}"
-      #     git push origin ${{ env.RELEASE_TAG }}
-      #     echo "Tag pushed successfully."
-      
-          # <--- 关键的新增步骤，方案二  ---
-      - name: Verify Git Tag Exists (if manual)
-        # 只有 "手动运行" 时才需要检查, "推送标签" 触发时标签一定存在
-        if: github.event_name == 'workflow_dispatch'
-        run: |
-          echo "正在检查标签 ${{ env.RELEASE_TAG }} 是否存在..."
-          # 使用 gh api 检查 Git 引用
-          # 如果标签不存在, 这条命令会返回 "Not Found" (exit code 1)
-          # 'set -e' (默认) 会捕获这个错误并停止工作流
-          gh api /repos/${{ github.repository }}/git/ref/tags/${{ env.RELEASE_TAG }} --silent
-          echo "检查通过! 标签 ${{ env.RELEASE_TAG }} 存在, 准备发布。"
-
-      - name: Create Release (as Draft)
-        uses: ncipollo/release-action@v1
-        with:
-          # 上传所有 .zip 文件
-          artifacts: "*.zip" 
-          
-          # (推荐) 设为 true, 创建为草稿, 等你手动编辑日志
-          draft: true
-          
-          # 设为 false, 因为你的提交不规范，不让它自动生成
-          generateReleaseNotes: true 
-          
-          # <--- 关键优化：使用与上面 env 中相同的逻辑 ---
-          token: ${{ secrets.MY_PAT || secrets.GITHUB_TOKEN }}
-          # <--- 新增：告诉 Action 商城使用我们的标签名 ---
-          tag: ${{ env.RELEASE_TAG }}
-          # name: "Release ${{ env.RELEASE_TAG }}" # <--- 新增：设置 Release 的标题，去掉直接使用手动输入的或者推送的标签
+          name: TrOCR-x64
+          path: |
+            **/bin/x64/Release/**
+            **/bin/Release/**
