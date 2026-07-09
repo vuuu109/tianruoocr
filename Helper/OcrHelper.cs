@@ -715,7 +715,6 @@ namespace TrOCR.Helper
             }
         }
     }
-}
         public static async System.Threading.Tasks.Task<string> Pix2Text(byte[] imageBytes)
         {
             return await System.Threading.Tasks.Task.Run(() =>
