@@ -5,11 +5,16 @@ on:
     branches: [ pix2text, main ]
   workflow_dispatch:
 
+env:
+  GitVersion_Disable: 1
+
 jobs:
   build:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
@@ -18,7 +23,7 @@ jobs:
         run: nuget restore TrOCR.sln
 
       - name: Build
-        run: msbuild TrOCR.sln /p:Configuration=Release /p:Platform=x64
+        run: msbuild TrOCR.sln /p:Configuration=Release /p:Platform=x64 /p:GitVersion_Disable=1
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
