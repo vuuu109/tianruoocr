@@ -715,4 +715,16 @@ namespace TrOCR.Helper
             }
         }
     }
-}
+
+        public static async Task<string> Pix2Text(byte[] imageBytes)
+        {
+            return await Task.Run(() =>
+            {
+                using (var ms = new MemoryStream(imageBytes))
+                using (var img = Image.FromStream(ms))
+                {
+                    return Pix2TextHelper.RecognizeText(img);
+                }
+            });
+        }
+    }
