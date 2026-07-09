@@ -369,6 +369,7 @@
     <Compile Include="Helper\OpenAICompatibleTranslate.cs" />
     <Compile Include="Helper\OpenAICompatibleHelper.cs" />
     <Compile Include="Helper\Pangu.cs" />
+    <Compile Include="Helper\Pix2TextHelper.cs" />
     <Compile Include="Helper\TranslateHelper.cs" />
     <Compile Include="Helper\BingTranslator.cs" />
     <Compile Include="Helper\BingTranslator2.cs" />
