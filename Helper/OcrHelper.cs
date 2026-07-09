@@ -714,7 +714,7 @@ namespace TrOCR.Helper
                 return $"***白描OCR执行失败: {ex.Message}***";
             }
         }
-    }
+
 
         public static async System.Threading.Tasks.Task<string> Pix2Text(byte[] imageBytes)
         {
@@ -727,4 +727,5 @@ namespace TrOCR.Helper
                 }
             });
         }
+    }
 }
