@@ -1940,25 +1940,26 @@ namespace TrOCR
 		/// </summary>
 		/// <param name="sender">事件发送者</param>
 		/// <param name="e">事件参数</param>
+
 		/// <summary>
 		/// 使用 Pix2Text 识别图片文字
 		/// </summary>
 		public void OCR_Pix2Text()
 		{
-			 try
-			 {
-				 split_txt = "";
-				 typeset_txt = "";
-				 byte[] imageBytes = OcrHelper.ImgToBytes(image_screen);
-				 string result = OcrHelper.Pix2Text(imageBytes).GetAwaiter().GetResult();
-				 typeset_txt = result;
-				 split_txt = result;
-			 }
-			 catch (Exception ex)
-			 {
-				 typeset_txt = "***Pix2Text识别失败: " + ex.Message + "***";
-				 split_txt = typeset_txt;
-			 }
+			try
+			{
+				split_txt = "";
+				typeset_txt = "";
+				byte[] imageBytes = OcrHelper.ImgToBytes(image_screen);
+				string result = OcrHelper.Pix2Text(imageBytes).GetAwaiter().GetResult();
+				typeset_txt = result;
+				split_txt = result;
+			}
+			catch (Exception ex)
+			{
+				typeset_txt = "***Pix2Text识别失败: " + ex.Message + "***";
+				split_txt = typeset_txt;
+			}
 		}
 
 		private void OCR_sougou_Click(object sender, EventArgs e)
