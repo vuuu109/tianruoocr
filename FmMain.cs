@@ -4737,7 +4737,7 @@ namespace TrOCR
 				return;
 			}
 
-				if (interface_flag == "Pix2Text)
+				if (interface_flag == "Pix2Text")
 				{
 					OCR_Pix2Text();
 					fmloading.FmlClose = "窗体已关闭";
