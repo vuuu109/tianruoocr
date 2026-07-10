@@ -113,7 +113,7 @@ namespace TrOCR.Helper
                                 string trimmed = line.Trim();
                                 if (trimmed.Contains("%|") && trimmed.Contains("|%")) continue;
                                 if (trimmed.StartsWith("Using a slow")) continue;
-                                if (trimmed.StartsWith("0:")) continue;  # YOLO detection output
+                                if (trimmed.StartsWith("0:")) continue;  // YOLO detection output
                                 if (trimmed.StartsWith("Speed:")) continue;
                                 if (trimmed.StartsWith("WARNING")) continue;
                                 if (trimmed.StartsWith("Loading")) continue;
