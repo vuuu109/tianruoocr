@@ -2074,6 +2074,11 @@ namespace TrOCR
 			OCR_foreach("RapidOCR");
 		}
 
+		private void OCR_pix2text_Click(object sender, EventArgs e)
+		{
+			OCR_foreach("Pix2Text");
+		}
+
 		
 		#endregion
 // ====================================================================================================================
