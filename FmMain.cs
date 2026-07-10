@@ -5901,6 +5901,12 @@ namespace TrOCR
 					Refresh();
 					rapidocr.Text = "RapidOCR√";
 					break;
+                case "Pix2Text":
+                    interface_flag = "Pix2Text";
+                    Refresh();
+                    pix2text.Text = "Pix2Text√";
+                    break;
+
                 case "CustomOpenAI":
                     interface_flag = "CustomOpenAI";
                     Refresh(); // 先重置所有菜单文字
