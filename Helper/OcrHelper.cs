@@ -727,5 +727,17 @@ namespace TrOCR.Helper
                 }
             });
         }
+
+        public static async System.Threading.Tasks.Task<string> Pix2Text_Formula(byte[] imageBytes)
+        {
+            return await System.Threading.Tasks.Task.Run(() =>
+            {
+                using (var ms = new System.IO.MemoryStream(imageBytes))
+                using (var img = System.Drawing.Image.FromStream(ms))
+                {
+                    return Pix2TextHelper.RecognizeFormula(img);
+                }
+            });
+        }
     }
 }
