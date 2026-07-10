@@ -1060,6 +1060,11 @@ namespace TrOCR
                 case "百度2":
                     googleTranslate_txt = await BaiduTranslator2Helper.TranslateAsync(textToTranslate, fromLang, toLang);
                     break;
+
+					case "Pix2Text":
+						interface_flag = "Pix2Text";
+						Refresh();
+						break;
                 case "CustomOpenAI":
                     googleTranslate_txt = await Trans_OpenAICompatible(textToTranslate, fromLang, toLang);
                     break;
@@ -1935,6 +1940,27 @@ namespace TrOCR
 		/// </summary>
 		/// <param name="sender">事件发送者</param>
 		/// <param name="e">事件参数</param>
+		/// <summary>
+		/// 使用 Pix2Text 识别图片文字
+		/// </summary>
+		public void OCR_Pix2Text()
+		{
+			 try
+			 {
+				 split_txt = "";
+				 typeset_txt = "";
+				 byte[] imageBytes = OcrHelper.ImgToBytes(image_screen);
+				 string result = OcrHelper.Pix2Text(imageBytes).GetAwaiter().GetResult();
+				 typeset_txt = result;
+				 split_txt = result;
+			 }
+			 catch (Exception ex)
+			 {
+				 typeset_txt = "***Pix2Text识别失败: " + ex.Message + "***";
+				 split_txt = typeset_txt;
+			 }
+		}
+
 		private void OCR_sougou_Click(object sender, EventArgs e)
 		{
 			OCR_foreach("搜狗");
@@ -4709,6 +4735,14 @@ namespace TrOCR
 				Invoke(new OcrThread(Main_OCR_Thread_last));
 				return;
 			}
+
+				if (interface_flag == "Pix2Text)
+				{
+					OCR_Pix2Text();
+					fmloading.FmlClose = "窗体已关闭";
+					Invoke(new OcrThread(Main_OCR_Thread_last));
+					return;
+				}
 			// 处理竖排文字识别（从左向右或从右向左）
 			if (interface_flag == "从左向右" || interface_flag == "从右向左")
 			{
