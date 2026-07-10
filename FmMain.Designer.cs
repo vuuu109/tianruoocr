@@ -333,6 +333,9 @@ namespace TrOCR
 			this.youdao.Click += new global::System.EventHandler(this.OCR_youdao_Click);
 			this.wechat.Text = "微信";
 			this.wechat.Click += new global::System.EventHandler(this.OCR_wechat_Click);
+			this.pix2text = new global::System.Windows.Forms.ToolStripMenuItem();
+			this.pix2text.Text = "Pix2Text";
+			this.pix2text.Click += new global::System.EventHandler(this.OCR_pix2text_Click);
 			this.baimiao = new global::System.Windows.Forms.ToolStripMenuItem();
 			this.baimiao.Text = "白描";
 			this.baimiao.Click += new global::System.EventHandler(this.OCR_baimiao_Click);
@@ -446,6 +449,7 @@ namespace TrOCR
 				this.paddleocr,
 				this.paddleocr2,
 				this.rapidocr,
+				this.pix2text,
 				this.toolStripSeparator1,
 				this.Mathfuntion,
 				this.ocr_table,
@@ -639,6 +643,11 @@ namespace TrOCR
 		/// 接口 - RapidOCR
 		/// </summary>
 		public global::System.Windows.Forms.ToolStripItem rapidocr;
+
+		/// <summary>
+		/// 接口 - Pix2Text
+		/// </summary>
+		public global::System.Windows.Forms.ToolStripItem pix2text;
 
 		/// <summary>
 		/// 接口 - 竖排
