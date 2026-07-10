@@ -8349,6 +8349,7 @@ namespace TrOCR
 			SetMenuItemVisibility(paddleocr, "Ocr接口显示", "PaddleOCR");
 			SetMenuItemVisibility(paddleocr2, "Ocr接口显示", "PaddleOCR2");
 			SetMenuItemVisibility(rapidocr, "Ocr接口显示", "RapidOCR");
+			SetMenuItemVisibility(pix2text, "Ocr接口显示", "Pix2Text");
 
 			// OCR 子菜单接口可见性设置
 			SetMenuItemVisibility(baidu_table, "Ocr接口显示", "TableBaidu");
